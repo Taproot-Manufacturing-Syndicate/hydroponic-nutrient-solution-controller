@@ -1,13 +1,9 @@
-//! Blinks the LED on a Pico board
-//!
-//! This will blink an LED attached to GP25, which is the pin the Pico uses for the on-board LED.
 #![no_std]
 #![no_main]
 
 use bsp::entry;
 use defmt::*;
 use defmt_rtt as _;
-use embedded_hal::digital::OutputPin;
 use panic_probe as _;
 
 // Provide an alias for our BSP so we can switch targets quickly.
@@ -21,6 +17,8 @@ use bsp::hal::{
     sio::Sio,
     watchdog::Watchdog,
 };
+
+mod stepper;
 
 #[entry]
 fn main() -> ! {
@@ -53,25 +51,16 @@ fn main() -> ! {
         &mut pac.RESETS,
     );
 
-    // This is the correct pin on the Raspberry Pico board. On other boards, even if they have an
-    // on-board LED, it might need to be changed.
-    //
-    // Notably, on the Pico W, the LED is not connected to any of the RP2040 GPIOs but to the cyw43 module instead.
-    // One way to do that is by using [embassy](https://github.com/embassy-rs/embassy/blob/main/examples/rp/src/bin/wifi_blinky.rs)
-    //
-    // If you have a Pico W and want to toggle a LED with a simple GPIO output pin, you can connect an external
-    // LED to one of the GPIO pins, and reference that pin here. Don't forget adding an appropriate resistor
-    // in series with the LED.
-    let mut led_pin = pins.led.into_push_pull_output();
+    let mut pump = stepper::Stepper::new(
+        pins.gpio0.into_push_pull_output(),
+        pins.gpio1.into_push_pull_output(),
+        pins.gpio2.into_push_pull_output(),
+        pins.gpio3.into_push_pull_output(),
+    );
 
     loop {
-        info!("on!");
-        led_pin.set_high().unwrap();
-        delay.delay_ms(500);
-        info!("off!");
-        led_pin.set_low().unwrap();
-        delay.delay_ms(500);
+        const DELAY_US: u32 = 3_000;
+        pump.step();
+        delay.delay_us(DELAY_US);
     }
 }
-
-// End of file
