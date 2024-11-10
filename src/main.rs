@@ -4,6 +4,7 @@
 use bsp::entry;
 use defmt::*;
 use defmt_rtt as _;
+use embedded_hal::digital::InputPin;
 use panic_probe as _;
 
 // Provide an alias for our BSP so we can switch targets quickly.
@@ -51,6 +52,8 @@ fn main() -> ! {
         &mut pac.RESETS,
     );
 
+    let mut direction_control_button = pins.gpio8.into_pull_down_input();
+
     let mut pump0 = stepper::Stepper::new(
         pins.gpio0.into_push_pull_output(), // IN1
         pins.gpio1.into_push_pull_output(), // IN3
@@ -70,8 +73,9 @@ fn main() -> ! {
         // can pump water.
         const DELAY_US: u32 = 3_000;
         const _STEPS_PER_REVOLUTION: u32 = 2048;
-        pump0.step(true);
-        pump1.step(false);
+        let direction: bool = direction_control_button.is_high().unwrap();
+        pump0.step(direction);
+        pump1.step(!direction);
         delay.delay_us(DELAY_US);
     }
 }
