@@ -51,23 +51,27 @@ fn main() -> ! {
         &mut pac.RESETS,
     );
 
-    let mut pump = stepper::Stepper::new(
-        pins.gpio0.into_push_pull_output(),
-        pins.gpio1.into_push_pull_output(),
-        pins.gpio2.into_push_pull_output(),
-        pins.gpio3.into_push_pull_output(),
+    let mut pump0 = stepper::Stepper::new(
+        pins.gpio0.into_push_pull_output(), // IN1
+        pins.gpio1.into_push_pull_output(), // IN3
+        pins.gpio2.into_push_pull_output(), // IN2
+        pins.gpio3.into_push_pull_output(), // IN4
+    );
+
+    let mut pump1 = stepper::Stepper::new(
+        pins.gpio4.into_push_pull_output(), // IN1
+        pins.gpio5.into_push_pull_output(), // IN3
+        pins.gpio6.into_push_pull_output(), // IN2
+        pins.gpio7.into_push_pull_output(), // IN4
     );
 
     loop {
+        // 3_000 µs/step gives enough torque that two motors together
+        // can pump water.
         const DELAY_US: u32 = 3_000;
-        const STEPS_PER_REVOLUTION: u32 = 2048;
-        for _ in 0..STEPS_PER_REVOLUTION {
-            pump.step(true);
-            delay.delay_us(DELAY_US);
-        }
-        for _ in 0..STEPS_PER_REVOLUTION {
-            pump.step(false);
-            delay.delay_us(DELAY_US);
-        }
+        const _STEPS_PER_REVOLUTION: u32 = 2048;
+        pump0.step(true);
+        pump1.step(false);
+        delay.delay_us(DELAY_US);
     }
 }
