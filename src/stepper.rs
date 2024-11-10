@@ -45,8 +45,12 @@ where
         self.in4.set_state(((pins & 0x8) != 0).into()).unwrap();
     }
 
-    pub fn step(&mut self) {
-        self.waveform_index = (self.waveform_index + 1) % WAVEFORM.len();
+    pub fn step(&mut self, dir: bool) {
+        let delta: isize = match dir {
+            true => 1,
+            false => -1,
+        };
+        self.waveform_index = self.waveform_index.wrapping_add_signed(delta) % WAVEFORM.len();
         self.set_pins();
     }
 }

@@ -60,7 +60,14 @@ fn main() -> ! {
 
     loop {
         const DELAY_US: u32 = 3_000;
-        pump.step();
-        delay.delay_us(DELAY_US);
+        const STEPS_PER_REVOLUTION: u32 = 2048;
+        for _ in 0..STEPS_PER_REVOLUTION {
+            pump.step(true);
+            delay.delay_us(DELAY_US);
+        }
+        for _ in 0..STEPS_PER_REVOLUTION {
+            pump.step(false);
+            delay.delay_us(DELAY_US);
+        }
     }
 }
