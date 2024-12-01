@@ -19,7 +19,9 @@ use bsp::hal::{
     watchdog::Watchdog,
 };
 
-mod peristaltic_pump;
+mod lcpp28byj;
+mod pump;
+mod s28byj;
 mod stepper;
 
 #[entry]
@@ -55,21 +57,21 @@ fn main() -> ! {
 
     let mut direction_control_button = pins.gpio8.into_pull_down_input();
 
-    let mut stepper0 = stepper::Stepper::new(
+    let stepper0 = s28byj::S28byj::new(
         pins.gpio0.into_push_pull_output(), // IN1
         pins.gpio1.into_push_pull_output(), // IN3
         pins.gpio2.into_push_pull_output(), // IN2
         pins.gpio3.into_push_pull_output(), // IN4
     );
 
-    let mut stepper1 = stepper::Stepper::new(
+    let stepper1 = s28byj::S28byj::new(
         pins.gpio4.into_push_pull_output(), // IN1
         pins.gpio5.into_push_pull_output(), // IN3
         pins.gpio6.into_push_pull_output(), // IN2
         pins.gpio7.into_push_pull_output(), // IN4
     );
 
-    let pump = peristaltic_pump::Lcpp28byj::new(stepper0, stepper1);
+    let mut pump = lcpp28byj::Lcpp28byj::new(stepper0, stepper1);
 
     loop {
         // 3_000 µs/step gives enough torque that two motors together
