@@ -19,6 +19,9 @@ use bsp::hal::{
     watchdog::Watchdog,
 };
 
+mod lcpp28byj;
+mod pump;
+mod s28byj;
 mod stepper;
 
 #[entry]
@@ -54,19 +57,21 @@ fn main() -> ! {
 
     let mut direction_control_button = pins.gpio8.into_pull_down_input();
 
-    let mut pump0 = stepper::Stepper::new(
+    let stepper0 = s28byj::S28byj::new(
         pins.gpio0.into_push_pull_output(), // IN1
         pins.gpio1.into_push_pull_output(), // IN3
         pins.gpio2.into_push_pull_output(), // IN2
         pins.gpio3.into_push_pull_output(), // IN4
     );
 
-    let mut pump1 = stepper::Stepper::new(
+    let stepper1 = s28byj::S28byj::new(
         pins.gpio4.into_push_pull_output(), // IN1
         pins.gpio5.into_push_pull_output(), // IN3
         pins.gpio6.into_push_pull_output(), // IN2
         pins.gpio7.into_push_pull_output(), // IN4
     );
+
+    let mut pump = lcpp28byj::Lcpp28byj::new(stepper0, stepper1);
 
     loop {
         // 3_000 µs/step gives enough torque that two motors together
@@ -74,8 +79,7 @@ fn main() -> ! {
         const DELAY_US: u32 = 3_000;
         const _STEPS_PER_REVOLUTION: u32 = 2048;
         let direction: bool = direction_control_button.is_high().unwrap();
-        pump0.step(direction);
-        pump1.step(!direction);
+        pump.step(direction);
         delay.delay_us(DELAY_US);
     }
 }
